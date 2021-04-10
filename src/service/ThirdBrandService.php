@@ -3,27 +3,18 @@
 namespace xjryanse\third\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
-use xjryanse\logic\Arrays;
+
 /**
- * 第三方api分组
+ * 第三方品牌
  */
-class ThirdGroupService extends Base implements MainModelInterface {
+class ThirdBrandService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
 
     protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\third\\model\\ThirdGroup';
+    protected static $mainModelClass = '\\xjryanse\\third\\model\\ThirdBrand';
 
-    /**
-     * 根据分组key，取默认的apiId
-     */
-    public static function keyDefaultApiId( $groupKey )
-    {
-        $con[] = ['group_key','=',$groupKey];
-        $info = self::find( $con );
-        return Arrays::value($info, 'default_api_id');
-    }
     /**
      *
      */
@@ -45,27 +36,9 @@ class ThirdGroupService extends Base implements MainModelInterface {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
-    /**
-     * 分组名称
-     */
-    public function fGroupName() {
+    public function fDefaultAppId() {
         return $this->getFFieldValue(__FUNCTION__);
     }
-
-    /**
-     * 分组key
-     */
-    public function fGroupKey() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 本分组的默认api
-     */
-    public function fDefaultApiId() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
     /**
      * 排序
      */

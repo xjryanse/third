@@ -3,6 +3,8 @@
 namespace xjryanse\third\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
+use xjryanse\logic\Arrays;
+use Exception;
 
 /**
  * 第三方api清单
@@ -15,6 +17,35 @@ class ThirdApiService extends Base implements MainModelInterface {
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\third\\model\\ThirdApi';
 
+    /**
+     * 带appId的get结果（一般取出可以直接调用）
+     * @param type $id
+     * @param type $appId
+     */
+    public function getWithApp($appId='')
+    {
+        $info = $this->get();
+        if(!$appId){
+            //没有指定appId，则取默认的appId
+            $brandId    = Arrays::value($info, 'brand_id');
+            $appId      = ThirdBrandService::getInstance( $brandId )->fDefaultAppId();
+        }
+        $appInfo = ThirdAppService::getInstance( $appId )->get();
+        if(!$appInfo){
+            throw new Exception('应用'.$appId.'不存在');
+        }
+        if(!Arrays::value($appInfo, 'status')){
+            throw new Exception('应用'.$appId.'不可用');
+        }
+        $thirdArr = Arrays::getByKeys($appInfo ? $appInfo->toArray() : [], ['third_appid','third_appkey','third_appsecret']);
+        foreach( $thirdArr as $key=>$value){
+            $info['api_url'] = str_replace('{$'.$key.'}', $value , $info['api_url']);
+        }
+        //【额外拼接，用于日志记录】20210409
+        $info['thirdAppId'] = $appId;
+        return $info;
+    }
+    
     /**
      *
      */
