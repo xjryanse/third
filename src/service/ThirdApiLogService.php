@@ -5,6 +5,7 @@ namespace xjryanse\third\service;
 use xjryanse\system\interfaces\MainModelInterface;
 use xjryanse\system\service\SystemErrorLogService;
 use xjryanse\logic\Arrays;
+use xjryanse\logic\Debug;
 use xjryanse\curl\Query;
 use think\facade\Request;
 use Exception;
@@ -27,8 +28,16 @@ class ThirdApiLogService extends Base implements MainModelInterface {
      * @param type $appId   指定的appId，无时使用默认
      */
     public static function queryAndLog( $apiId, $param = [],$appId=''){
+        if(self::mainModel()->inTransaction()){
+            throw new Exception('请不要在事务中操作远程接口调用');
+        }
         //无时使用默认
         $info = ThirdApiService::getInstance( $apiId )->getWithApp( $appId );
+        if($info['api_param']){
+            $paramCov   = json_decode($info['api_param'],JSON_UNESCAPED_UNICODE);
+            $param      = Arrays::keyReplace($param, $paramCov);
+        }
+
         try {
             $url            = Arrays::value($info, 'api_url');
             $method         = Arrays::value($info, 'api_method');
@@ -42,11 +51,13 @@ class ThirdApiLogService extends Base implements MainModelInterface {
             $data['url_ip'] = gethostbyname( $parseUrl['host'] );
             $data['header'] = '';
             $data['param']  = json_encode($param, JSON_UNESCAPED_UNICODE);
+            Debug::debug('$param', $param);
             if( strtolower($method) == 'post' ){
                 $res = Query::post($url, $param);
             } else {
                 $res = Query::geturl($url, $param);
             }
+            Debug::debug('$res', $res);
 
             $data['code']       = Arrays::value($res, $codeField);
             $data['response']   = json_encode($res, JSON_UNESCAPED_UNICODE);
@@ -65,8 +76,10 @@ class ThirdApiLogService extends Base implements MainModelInterface {
     public function getWithCov()
     {
         $info = $this->get();
-        $info['param'] = json_decode($info['param'], JSON_UNESCAPED_UNICODE);
-        $info['response'] = json_decode($info['response'], JSON_UNESCAPED_UNICODE);
+        if($info){
+            $info['param'] = json_decode($info['param'], JSON_UNESCAPED_UNICODE);
+            $info['response'] = json_decode($info['response'], JSON_UNESCAPED_UNICODE);
+        }
         return $info;
     }
     

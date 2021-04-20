@@ -28,7 +28,12 @@ class ThirdBrandService extends Base implements MainModelInterface {
     public function fAppId() {
         return $this->getFFieldValue(__FUNCTION__);
     }
-
+    /**
+     *
+     */
+    public function fBrandKey() {
+        return $this->getFFieldValue(__FUNCTION__);
+    }
     /**
      *
      */
