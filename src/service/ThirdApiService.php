@@ -24,13 +24,13 @@ class ThirdApiService extends Base implements MainModelInterface {
      */
     public function getWithApp($appId='')
     {
-        $info = $this->get();
+        $info = $this->get(86400);
         if(!$appId){
             //没有指定appId，则取默认的appId
             $brandId    = Arrays::value($info, 'brand_id');
             $appId      = ThirdBrandService::getInstance( $brandId )->fDefaultAppId();
         }
-        $appInfo = ThirdAppService::getInstance( $appId )->get();
+        $appInfo = ThirdAppService::getInstance( $appId )->get(86400);
         if(!$appInfo){
             throw new Exception('应用'.$appId.'不存在');
         }

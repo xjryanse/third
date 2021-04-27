@@ -21,7 +21,7 @@ class ThirdGroupService extends Base implements MainModelInterface {
     public static function keyDefaultApiId( $groupKey )
     {
         $con[] = ['group_key','=',$groupKey];
-        $info = self::find( $con );
+        $info = self::find( $con ,86400);
         return Arrays::value($info, 'default_api_id');
     }
     /**

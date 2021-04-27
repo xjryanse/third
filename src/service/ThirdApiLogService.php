@@ -69,13 +69,30 @@ class ThirdApiLogService extends Base implements MainModelInterface {
             SystemErrorLogService::exceptionLog($e);  
         }
     }
+    public static function hasQuery($apiId, $param = [])
+    {
+        $paramJson1 = json_encode($param,JSON_UNESCAPED_UNICODE);
+        //无时使用默认
+        $apiInfo = ThirdApiService::getInstance( $apiId )->getWithApp( );
+        if($apiInfo['api_param']){
+            $paramCov   = json_decode($apiInfo['api_param'],JSON_UNESCAPED_UNICODE);
+            $param      = Arrays::keyReplace($param, $paramCov);
+        }
+        
+        $paramJson2 = json_encode($param,JSON_UNESCAPED_UNICODE);
+        $con[] = ['param','in',[$paramJson1,$paramJson2]];
+        $con[] = ['api_id','=',$apiId];
+        $info = self::find( $con );
+        
+        return $info ? ['log_id'=>$info['id'],'res'=> json_decode($info['response'], JSON_UNESCAPED_UNICODE)] : [] ;
+    }
     
     /**
      * 提取记录并转化
      */
     public function getWithCov()
     {
-        $info = $this->get();
+        $info = $this->get(86400);
         if($info){
             $info['param'] = json_decode($info['param'], JSON_UNESCAPED_UNICODE);
             $info['response'] = json_decode($info['response'], JSON_UNESCAPED_UNICODE);
