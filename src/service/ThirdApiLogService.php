@@ -69,6 +69,21 @@ class ThirdApiLogService extends Base implements MainModelInterface {
             SystemErrorLogService::exceptionLog($e);  
         }
     }
+    
+    public static function log($url,$method,$header,$param,$response,$data = [])
+    {
+        $data['ip']             = Request::ip();
+        $data['url']            = $url;
+        $parseUrl               = parse_url($url); 
+        $data['method']         = $method;
+        $data['url_ip']         = gethostbyname( $parseUrl['host'] );
+        $data['header']         = json_encode($header, JSON_UNESCAPED_UNICODE);
+        $data['param']          = json_encode($param, JSON_UNESCAPED_UNICODE);
+        $data['response']       = json_encode($response, JSON_UNESCAPED_UNICODE);
+        
+        return self::save($data);
+    }
+    
     public static function hasQuery($apiId, $param = [])
     {
         $paramJson1 = json_encode($param,JSON_UNESCAPED_UNICODE);
@@ -99,7 +114,21 @@ class ThirdApiLogService extends Base implements MainModelInterface {
         }
         return $info;
     }
-    
+    /**
+     * 
+     */
+    public static function dump($id)
+    {
+        $log = self::getInstance( $id )->get();
+        echo '请求URL';
+        dump($log['url']);
+        echo '请求头';
+        dump($log['header']);
+        echo '请求参数';
+        dump($log['param']);
+        echo '返回结果';
+        dump($log['response']);
+    }
     /**
      *
      */
