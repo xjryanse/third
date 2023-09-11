@@ -4,6 +4,7 @@ namespace xjryanse\third\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
 use xjryanse\logic\Arrays;
+
 /**
  * 第三方api分组
  */
@@ -11,6 +12,7 @@ class ThirdGroupService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelQueryTrait;
 
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\third\\model\\ThirdGroup';
@@ -18,12 +20,12 @@ class ThirdGroupService extends Base implements MainModelInterface {
     /**
      * 根据分组key，取默认的apiId
      */
-    public static function keyDefaultApiId( $groupKey )
-    {
-        $con[] = ['group_key','=',$groupKey];
-        $info = self::find( $con ,86400);
+    public static function keyDefaultApiId($groupKey) {
+        $con[] = ['group_key', '=', $groupKey];
+        $info = self::find($con, 86400);
         return Arrays::value($info, 'default_api_id');
     }
+
     /**
      *
      */

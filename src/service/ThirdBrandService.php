@@ -11,6 +11,7 @@ class ThirdBrandService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelQueryTrait;
 
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\third\\model\\ThirdBrand';
@@ -28,12 +29,14 @@ class ThirdBrandService extends Base implements MainModelInterface {
     public function fAppId() {
         return $this->getFFieldValue(__FUNCTION__);
     }
+
     /**
      *
      */
     public function fBrandKey() {
         return $this->getFFieldValue(__FUNCTION__);
     }
+
     /**
      *
      */
@@ -44,6 +47,7 @@ class ThirdBrandService extends Base implements MainModelInterface {
     public function fDefaultAppId() {
         return $this->getFFieldValue(__FUNCTION__);
     }
+
     /**
      * 排序
      */

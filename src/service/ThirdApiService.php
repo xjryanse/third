@@ -13,6 +13,7 @@ class ThirdApiService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelQueryTrait;
 
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\third\\model\\ThirdApi';
@@ -22,30 +23,29 @@ class ThirdApiService extends Base implements MainModelInterface {
      * @param type $id
      * @param type $appId
      */
-    public function getWithApp($appId='')
-    {
+    public function getWithApp($appId = '') {
         $info = $this->get(86400);
-        if(!$appId){
+        if (!$appId) {
             //没有指定appId，则取默认的appId
-            $brandId    = Arrays::value($info, 'brand_id');
-            $appId      = ThirdBrandService::getInstance( $brandId )->fDefaultAppId();
+            $brandId = Arrays::value($info, 'brand_id');
+            $appId = ThirdBrandService::getInstance($brandId)->fDefaultAppId();
         }
-        $appInfo = ThirdAppService::getInstance( $appId )->get(86400);
-        if(!$appInfo){
-            throw new Exception('应用'.$appId.'不存在');
+        $appInfo = ThirdAppService::getInstance($appId)->get(86400);
+        if (!$appInfo) {
+            throw new Exception('应用' . $appId . '不存在');
         }
-        if(!Arrays::value($appInfo, 'status')){
-            throw new Exception('应用'.$appId.'不可用');
+        if (!Arrays::value($appInfo, 'status')) {
+            throw new Exception('应用' . $appId . '不可用');
         }
-        $thirdArr = Arrays::getByKeys($appInfo ? $appInfo->toArray() : [], ['third_appid','third_appkey','third_appsecret']);
-        foreach( $thirdArr as $key=>$value){
-            $info['api_url'] = str_replace('{$'.$key.'}', $value , $info['api_url']);
+        $thirdArr = Arrays::getByKeys($appInfo ? $appInfo->toArray() : [], ['third_appid', 'third_appkey', 'third_appsecret']);
+        foreach ($thirdArr as $key => $value) {
+            $info['api_url'] = str_replace('{$' . $key . '}', $value, $info['api_url']);
         }
         //【额外拼接，用于日志记录】20210409
         $info['thirdAppId'] = $appId;
         return $info;
     }
-    
+
     /**
      *
      */

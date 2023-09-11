@@ -17,6 +17,7 @@ class ThirdApiLogService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelQueryTrait;
 
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\third\\model\\ThirdApiLog';
@@ -27,99 +28,96 @@ class ThirdApiLogService extends Base implements MainModelInterface {
      * @param type $param   
      * @param type $appId   指定的appId，无时使用默认
      */
-    public static function queryAndLog( $apiId, $param = [],$appId=''){
-        if(self::mainModel()->inTransaction()){
+    public static function queryAndLog($apiId, $param = [], $appId = '') {
+        if (self::mainModel()->inTransaction()) {
             throw new Exception('请不要在事务中操作远程接口调用');
         }
         //无时使用默认
-        $info = ThirdApiService::getInstance( $apiId )->getWithApp( $appId );
-        if($info['api_param']){
-            $paramCov   = json_decode($info['api_param'],JSON_UNESCAPED_UNICODE);
-            $param      = Arrays::keyReplace($param, $paramCov);
+        $info = ThirdApiService::getInstance($apiId)->getWithApp($appId);
+        if ($info['api_param']) {
+            $paramCov = json_decode($info['api_param'], JSON_UNESCAPED_UNICODE);
+            $param = Arrays::keyReplace($param, $paramCov);
         }
 
         try {
-            $url            = Arrays::value($info, 'api_url');
-            $method         = Arrays::value($info, 'api_method');
-            $codeField      = Arrays::value($info, 'code_field');
-            $data['ip']     = Request::ip();
-            $data['brand_id']       = Arrays::value($info, 'brand_id');
-            $data['third_app_id']   = Arrays::value($info, 'thirdAppId');
+            $url = Arrays::value($info, 'api_url');
+            $method = Arrays::value($info, 'api_method');
+            $codeField = Arrays::value($info, 'code_field');
+            $data['ip'] = Request::ip();
+            $data['brand_id'] = Arrays::value($info, 'brand_id');
+            $data['third_app_id'] = Arrays::value($info, 'thirdAppId');
             $data['api_id'] = $apiId;
-            $data['url']    = $url;
-            $parseUrl       = parse_url($url); 
-            $data['url_ip'] = gethostbyname( $parseUrl['host'] );
+            $data['url'] = $url;
+            $parseUrl = parse_url($url);
+            $data['url_ip'] = gethostbyname($parseUrl['host']);
             $data['header'] = '';
-            $data['param']  = json_encode($param, JSON_UNESCAPED_UNICODE);
+            $data['param'] = json_encode($param, JSON_UNESCAPED_UNICODE);
             Debug::debug('$param', $param);
-            if( strtolower($method) == 'post' ){
+            if (strtolower($method) == 'post') {
                 $res = Query::post($url, $param);
             } else {
                 $res = Query::geturl($url, $param);
             }
             Debug::debug('$res', $res);
 
-            $data['code']       = Arrays::value($res, $codeField);
-            $data['response']   = json_encode($res, JSON_UNESCAPED_UNICODE);
+            $data['code'] = Arrays::value($res, $codeField);
+            $data['response'] = json_encode($res, JSON_UNESCAPED_UNICODE);
 
             $log = self::save($data);
-            return ['log_id'=>$log['id'],'res'=>$res];   //log:记录的日志信息,res 接口原样返回
+            return ['log_id' => $log['id'], 'res' => $res];   //log:记录的日志信息,res 接口原样返回
         } catch (\Exception $e) {
             //不报异常，以免影响访问
-            SystemErrorLogService::exceptionLog($e);  
+            SystemErrorLogService::exceptionLog($e);
         }
     }
-    
-    public static function log($url,$method,$header,$param,$response,$data = [])
-    {
-        $data['ip']             = Request::ip();
-        $data['url']            = $url;
-        $parseUrl               = parse_url($url); 
-        $data['method']         = $method;
-        $data['url_ip']         = gethostbyname( $parseUrl['host'] );
-        $data['header']         = json_encode($header, JSON_UNESCAPED_UNICODE);
-        $data['param']          = json_encode($param, JSON_UNESCAPED_UNICODE);
-        $data['response']       = json_encode($response, JSON_UNESCAPED_UNICODE);
-        
+
+    public static function log($url, $method, $header, $param, $response, $data = []) {
+        $data['ip'] = Request::ip();
+        $data['url'] = $url;
+        $parseUrl = parse_url($url);
+        $data['method'] = $method;
+        $data['url_ip'] = gethostbyname($parseUrl['host']);
+        $data['header'] = json_encode($header, JSON_UNESCAPED_UNICODE);
+        $data['param'] = json_encode($param, JSON_UNESCAPED_UNICODE);
+        $data['response'] = json_encode($response, JSON_UNESCAPED_UNICODE);
+
         return self::save($data);
     }
-    
-    public static function hasQuery($apiId, $param = [])
-    {
-        $paramJson1 = json_encode($param,JSON_UNESCAPED_UNICODE);
+
+    public static function hasQuery($apiId, $param = []) {
+        $paramJson1 = json_encode($param, JSON_UNESCAPED_UNICODE);
         //无时使用默认
-        $apiInfo = ThirdApiService::getInstance( $apiId )->getWithApp( );
-        if($apiInfo['api_param']){
-            $paramCov   = json_decode($apiInfo['api_param'],JSON_UNESCAPED_UNICODE);
-            $param      = Arrays::keyReplace($param, $paramCov);
+        $apiInfo = ThirdApiService::getInstance($apiId)->getWithApp();
+        if ($apiInfo['api_param']) {
+            $paramCov = json_decode($apiInfo['api_param'], JSON_UNESCAPED_UNICODE);
+            $param = Arrays::keyReplace($param, $paramCov);
         }
-        
-        $paramJson2 = json_encode($param,JSON_UNESCAPED_UNICODE);
-        $con[] = ['param','in',[$paramJson1,$paramJson2]];
-        $con[] = ['api_id','=',$apiId];
-        $info = self::find( $con );
-        
-        return $info ? ['log_id'=>$info['id'],'res'=> json_decode($info['response'], JSON_UNESCAPED_UNICODE)] : [] ;
+
+        $paramJson2 = json_encode($param, JSON_UNESCAPED_UNICODE);
+        $con[] = ['param', 'in', [$paramJson1, $paramJson2]];
+        $con[] = ['api_id', '=', $apiId];
+        $info = self::find($con);
+
+        return $info ? ['log_id' => $info['id'], 'res' => json_decode($info['response'], JSON_UNESCAPED_UNICODE)] : [];
     }
-    
+
     /**
      * 提取记录并转化
      */
-    public function getWithCov()
-    {
+    public function getWithCov() {
         $info = $this->get(86400);
-        if($info){
+        if ($info) {
             $info['param'] = json_decode($info['param'], JSON_UNESCAPED_UNICODE);
             $info['response'] = json_decode($info['response'], JSON_UNESCAPED_UNICODE);
         }
         return $info;
     }
+
     /**
      * 
      */
-    public static function dump($id)
-    {
-        $log = self::getInstance( $id )->get();
+    public static function dump($id) {
+        $log = self::getInstance($id)->get();
         echo '请求URL';
         dump($log['url']);
         echo '请求头';
@@ -129,6 +127,7 @@ class ThirdApiLogService extends Base implements MainModelInterface {
         echo '返回结果';
         dump($log['response']);
     }
+
     /**
      *
      */
